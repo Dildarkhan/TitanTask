@@ -25,15 +25,20 @@ public class ChessItemAdapter extends RecyclerView.Adapter<ChessItemAdapter.View
     private List<ChessItem> chessItems;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
-    private int dataSize;
+    private int dataSize,inputSize;
     private boolean flagColor = false;
     public Context mContext;
+    public Handler singleHandler;
+    public boolean isHandlerRunning;
+    int row,col;
 
     // data is passed into the constructor
-    public ChessItemAdapter(Context context, List<ChessItem> chessItems) {
+    public ChessItemAdapter(Context context, List<ChessItem> chessItems,int num) {
         this.mInflater = LayoutInflater.from(context);
         this.chessItems = chessItems;
         this.mContext=context;
+        this.dataSize=chessItems.size();
+        this.inputSize=num;
     }
 
     // inflates the cell layout from xml when needed
@@ -48,22 +53,41 @@ public class ChessItemAdapter extends RecyclerView.Adapter<ChessItemAdapter.View
     @SuppressLint("ResourceAsColor")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") int position) {
-        if (position % 2 == 0) {
-            if (flagColor) {
+        holder.setIsRecyclable(false);
+        if(dataSize%2==0){
+            if (position % 2 == 0) {
+                /*try {
+                    if (inputSize % position == 0) {
+                        flagColor = false;
+                    } else {
+                        flagColor = true;
+                    }
+                }catch (Exception e){}
+
+               if (flagColor) {
+                    holder.lytChessItem.setBackgroundColor(R.color.bl);
+                } else {
+                    holder.lytChessItem.setBackgroundColor(R.color.wt);
+                }*/
+            }
+        }else{
+            if (position % 2 == 0) {
                 holder.lytChessItem.setBackgroundColor(R.color.bl);
-                flagColor = false;
-            } else {
-                holder.lytChessItem.setBackgroundColor(R.color.wt);
-                flagColor = true;
+               /* if (flagColor) {
+                    holder.lytChessItem.setBackgroundColor(R.color.bl);
+                    flagColor = false;
+                } else {
+                    holder.lytChessItem.setBackgroundColor(R.color.wt);
+                    flagColor = true;
+                }*/
             }
         }
 
         holder.myTextView.setText(chessItems.get(position).getVal()+"");
-
         holder.myTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                chessItemClicked(v, position,chessItems);
+                chessItemClicked(v, position);
             }
         });
     }
@@ -109,45 +133,47 @@ public class ChessItemAdapter extends RecyclerView.Adapter<ChessItemAdapter.View
     }
 
 
-    public void chessItemClicked(View v,int pos, List<ChessItem> chessItemList) {
-        Handler[] handlers=new Handler[chessItemList.size()];
-        for(int i=0;i<chessItemList.size();i++){
-            handlers[i]=new Handler();
-        }
-
-       /* Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                int valTemp = Integer.parseInt(((TextView) v.findViewById(R.id.tv_chessItem)).getText().toString()) + 1;
-                chessItemList.set(pos,new ChessItem(valTemp,true));
-                notifyItemChanged(pos,chessItemList);
-                if(chessItemList.get(pos).flagRunning) {
-                    handlers[pos].postDelayed(this, 1000);
-                }
+    public void executeRepeated(){
+        Log.d("KHAN ","executing repeated");
+        for(int i=0;i<chessItems.size();i++){
+            if(chessItems.get(i).flagRunning){
+                int valTemp = chessItems.get(i).getVal() + 1;
+                chessItems.set(i,new ChessItem(valTemp,true));
+                notifyItemChanged(i,chessItems);
             }
-        };*/
-
-        if(chessItemList.get(pos).flagRunning){
-            handlers[pos].removeCallbacks(null);
-            chessItemList.get(pos).setFlagRunning(false);
-            notifyDataSetChanged();
-            Log.d("KHAN "," not RUnning");
-        }else{
-            handlers[pos].postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d("KHAN ","run");
-                    int valTemp = Integer.parseInt(((TextView) v.findViewById(R.id.tv_chessItem)).getText().toString()) + 1;
-                    chessItemList.set(pos,new ChessItem(valTemp,true));
-                    notifyItemChanged(pos,chessItemList);
-                    if(chessItemList.get(pos).flagRunning) {
-                        Log.d("KHAN ","RUnning");
-                        handlers[pos].postDelayed(this, 1000);
-                    }
-                }
-            }, 1000);
         }
     }
 
+   public void startHandler(){
+        Log.d("KHAN ","Handler started");
+        isHandlerRunning=true;
+       singleHandler.postDelayed(new Runnable() {
+           @Override
+           public void run() {
+               executeRepeated();
+               singleHandler.postDelayed(this, 1000);
+           }
+       }, 1000);
+   }
+
+    public void chessItemClicked(View v,int pos) {
+        int valTemp = Integer.parseInt(((TextView) v.findViewById(R.id.tv_chessItem)).getText().toString()) ;
+        if(chessItems.get(pos).flagRunning){
+            chessItems.set(pos,new ChessItem(valTemp,false));
+        }else{
+            chessItems.set(pos,new ChessItem(valTemp,true));
+        }
+        notifyItemChanged(pos,chessItems);
+
+
+        //check weather handler is already running or not
+        if(isHandlerRunning){
+            //handler already running
+        }else{
+            //initiate handler and call startHandler method to start repeated hanlder
+            singleHandler=new Handler();
+            startHandler();
+        }
+    }
 
 }

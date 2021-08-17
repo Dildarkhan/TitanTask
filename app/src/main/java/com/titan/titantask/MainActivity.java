@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements ChessItemAdapter.
         rv_chess.setHasFixedSize(false);
         rv_chess.setLayoutManager(new GridLayoutManager(this, num));
         rv_chess.setItemAnimator(new DefaultItemAnimator());
-        chessItemAdapter=new ChessItemAdapter(MainActivity.this,chessItemList);
+        chessItemAdapter=new ChessItemAdapter(MainActivity.this,chessItemList,num);
         rv_chess.setAdapter(chessItemAdapter);
         chessItemAdapter.setClickListener(this);
     }

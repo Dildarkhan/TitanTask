@@ -10,5 +10,7 @@
 
     <color name="bl">#FF000000</color>
     <color name="wt">#FFFFFFFF</color>
+    <color name="red">#FF0000</color>
+    <color name="gre">#00FF00</color>
 
 </resources>
